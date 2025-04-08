@@ -7073,7 +7073,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
-name = "minimal-template-node"
+name = "healer-network-node"
 version = "0.1.0"
 dependencies = [
  "clap",
@@ -7081,16 +7081,16 @@ dependencies = [
  "futures",
  "futures-timer",
  "jsonrpsee 0.24.9",
- "minimal-template-runtime",
+ "healer-network-runtime",
  "polkadot-sdk",
  "serde_json",
 ]
 
 [[package]]
-name = "minimal-template-runtime"
+name = "healer-network-runtime"
 version = "0.1.0"
 dependencies = [
- "pallet-minimal-template",
+ "pallet-healer-network",
  "parity-scale-codec",
  "polkadot-sdk",
  "scale-info",
@@ -8703,7 +8703,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-minimal-template"
+name = "pallet-healer-network"
 version = "0.1.0"
 dependencies = [
  "parity-scale-codec",

@@ -1,5 +1,5 @@
 [package]
-name = "pallet-minimal-template"
+name = "pallet-healer-network"
 description = "A minimal pallet built with FRAME, part of Polkadot Sdk."
 version = "0.1.0"
 license = "Unlicense"
@@ -15,7 +15,10 @@ targets = ["x86_64-unknown-linux-gnu"]
 [dependencies]
 codec = { features = ["derive"], workspace = true }
 scale-info = { features = ["derive"], workspace = true }
-polkadot-sdk = { workspace = true, features = ["experimental", "runtime"], default-features = false }
+polkadot-sdk = { workspace = true, features = [
+    "experimental",
+    "runtime",
+], default-features = false }
 
 
 [features]

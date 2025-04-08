@@ -86,8 +86,8 @@ pub mod genesis_config_presets {
 /// The runtime version.
 #[runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: alloc::borrow::Cow::Borrowed("minimal-template-runtime"),
-	impl_name: alloc::borrow::Cow::Borrowed("minimal-template-runtime"),
+	spec_name: alloc::borrow::Cow::Borrowed("healer-network-runtime"),
+	impl_name: alloc::borrow::Cow::Borrowed("healer-network-runtime"),
 	authoring_version: 1,
 	spec_version: 0,
 	impl_version: 1,

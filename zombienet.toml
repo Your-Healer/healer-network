@@ -3,7 +3,7 @@
 
 [relaychain]
 chain = "dev"
-default_command = "minimal-template-node"
+default_command = "healer-network-node"
 
 [[relaychain.nodes]]
 name = "alice"
