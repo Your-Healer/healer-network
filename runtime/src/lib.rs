@@ -15,7 +15,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! A minimal runtime that includes the template [`pallet`](`pallet_minimal_template`).
+//! A minimal runtime that includes the template [`pallet`](`pallet_healer_network`).
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -163,7 +163,7 @@ mod runtime {
 
 	/// A minimal pallet template.
 	#[runtime::pallet_index(5)]
-	pub type Template = pallet_minimal_template::Pallet<Runtime>;
+	pub type Template = pallet_healer_network::Pallet<Runtime>;
 }
 
 parameter_types! {
@@ -204,7 +204,7 @@ impl pallet_transaction_payment::Config for Runtime {
 }
 
 // Implements the types required for the template pallet.
-impl pallet_minimal_template::Config for Runtime {}
+impl pallet_healer_network::Config for Runtime {}
 
 type Block = frame::runtime::types_common::BlockOf<Runtime, TxExtension>;
 type Header = HeaderFor<Runtime>;
