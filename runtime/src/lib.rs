@@ -36,6 +36,37 @@ use polkadot_sdk::{
 	*,
 };
 
+// Local pallets
+pub use pallet_healer_network;
+pub use pallet_poh;
+
+/// An index to a block.
+pub type BlockNumber = u32;
+
+/// Balance of an account.
+pub type Balance = u128;
+
+/// Index of a transaction in the chain.
+pub type Index = u32;
+
+/// A hash of some data used by the chain.
+pub type Hash = sp_core::H256;
+
+pub use polkadot_sdk::{
+	frame_support:: {
+		traits::{
+			Currency, EstimateNextNewSession, Imbalance, IsSubType, KeyOwnerProofSystem,
+			LockIdentifier, Nothing, OnUnbalanced, ValidatorSet, VariantCountOf,
+		},
+		weights::{
+			constants::{
+				BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight, WEIGHT_REF_TIME_PER_SECOND,
+			},
+			IdentityFee, Weight,
+		},
+	}
+}
+
 /// Provides getters for genesis configuration presets.
 pub mod genesis_config_presets {
 	use super::*;
@@ -164,6 +195,10 @@ mod runtime {
 	/// A minimal pallet template.
 	#[runtime::pallet_index(5)]
 	pub type Template = pallet_healer_network::Pallet<Runtime>;
+
+	/// Proof of History pallet.
+	#[runtime::pallet_index(6)]
+	pub type PoH = pallet_poh::Pallet<Runtime>;
 }
 
 parameter_types! {
@@ -177,6 +212,10 @@ impl frame_system::Config for Runtime {
 	type Version = Version;
 	// Use the account data from the balances pallet
 	type AccountData = pallet_balances::AccountData<<Runtime as pallet_balances::Config>::Balance>;
+	/// The ubiquitous event type.
+	type RuntimeEvent = RuntimeEvent;
+	/// Weight information for the extrinsics of this pallet.
+	type SystemWeightInfo = ();
 }
 
 // Implements the types required for the balances pallet.
@@ -187,11 +226,20 @@ impl pallet_balances::Config for Runtime {
 
 // Implements the types required for the sudo pallet.
 #[derive_impl(pallet_sudo::config_preludes::TestDefaultConfig)]
-impl pallet_sudo::Config for Runtime {}
+impl pallet_sudo::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+}
 
 // Implements the types required for the sudo pallet.
 #[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
-impl pallet_timestamp::Config for Runtime {}
+impl pallet_timestamp::Config for Runtime {
+	/// A timestamp: milliseconds since the unix epoch.
+	type Moment = u64;
+	type OnTimestampSet = Aura;
+	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
+	type WeightInfo = ();
+}
 
 // Implements the types required for the transaction payment pallet.
 #[derive_impl(pallet_transaction_payment::config_preludes::TestDefaultConfig)]
@@ -204,7 +252,20 @@ impl pallet_transaction_payment::Config for Runtime {
 }
 
 // Implements the types required for the template pallet.
-impl pallet_healer_network::Config for Runtime {}
+impl pallet_healer_network::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_healer_network::weights::SubstrateWeight<Runtime>;
+}
+
+///  Implements the types required for the PoH pallet.
+impl pallet_poh::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Hasher = <Runtime as pallet_poh::Config>::Hasher;
+	type Time = <Runtime as pallet_poh::Config>::Time;
+	type Hash = <Runtime as pallet_poh::Config>::Hash;
+	type WeightInfo = pallet_poh::weights::SubstrateWeight<Runtime>;
+}
+
 
 type Block = frame::runtime::types_common::BlockOf<Runtime, TxExtension>;
 type Header = HeaderFor<Runtime>;

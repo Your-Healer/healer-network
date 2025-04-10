@@ -20,8 +20,13 @@ futures = { features = ["thread-pool"], workspace = true }
 futures-timer = { workspace = true }
 jsonrpsee = { features = ["server"], workspace = true }
 serde_json = { workspace = true, default-features = true }
-polkadot-sdk = { workspace = true, features = ["experimental", "node"] }
+
+# Local dependencies
 healer-network-runtime.workspace = true
+pallet-poh.workspace = true
+
+# Polkadot SDK dependencies
+polkadot-sdk = { workspace = true, features = ["experimental", "node"] }
 
 [build-dependencies]
 polkadot-sdk = { workspace = true, features = ["substrate-build-script-utils"] }

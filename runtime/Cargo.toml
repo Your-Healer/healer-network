@@ -23,7 +23,10 @@ polkadot-sdk = { workspace = true, features = [
 serde_json = { workspace = true, default-features = false, features = [
 	"alloc",
 ] }
+
+# Local dependencies
 pallet-healer-network.workspace = true
+pallet-poh.workspace = true
 
 [build-dependencies]
 polkadot-sdk = { optional = true, workspace = true, features = [
@@ -34,8 +37,9 @@ polkadot-sdk = { optional = true, workspace = true, features = [
 default = ["std"]
 std = [
 	"codec/std",
-	"pallet-healer-network/std",
-	"polkadot-sdk/std",
 	"scale-info/std",
 	"serde_json/std",
+	"polkadot-sdk/std",
+	"pallet-healer-network/std",
+	"pallet-poh/std",
 ]

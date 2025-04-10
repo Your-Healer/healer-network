@@ -4899,6 +4899,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "healer-network-node"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "docify",
+ "futures",
+ "futures-timer",
+ "healer-network-runtime",
+ "jsonrpsee 0.24.9",
+ "pallet-poh",
+ "polkadot-sdk",
+ "serde_json",
+]
+
+[[package]]
+name = "healer-network-runtime"
+version = "0.1.0"
+dependencies = [
+ "pallet-healer-network",
+ "pallet-poh",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "scale-info",
+ "serde_json",
+]
+
+[[package]]
 name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7073,31 +7100,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
-name = "healer-network-node"
-version = "0.1.0"
-dependencies = [
- "clap",
- "docify",
- "futures",
- "futures-timer",
- "jsonrpsee 0.24.9",
- "healer-network-runtime",
- "polkadot-sdk",
- "serde_json",
-]
-
-[[package]]
-name = "healer-network-runtime"
-version = "0.1.0"
-dependencies = [
- "pallet-healer-network",
- "parity-scale-codec",
- "polkadot-sdk",
- "scale-info",
- "serde_json",
-]
-
-[[package]]
 name = "miniz_oxide"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8565,6 +8567,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-healer-network"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "scale-info",
+]
+
+[[package]]
 name = "pallet-identity"
 version = "39.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8700,15 +8711,6 @@ dependencies = [
  "scale-info",
  "sp-core",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-healer-network"
-version = "0.1.0"
-dependencies = [
- "parity-scale-codec",
- "polkadot-sdk",
- "scale-info",
 ]
 
 [[package]]
@@ -8965,6 +8967,15 @@ dependencies = [
  "serde",
  "sp-core",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-poh"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "scale-info",
 ]
 
 [[package]]
