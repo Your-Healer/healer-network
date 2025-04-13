@@ -24,13 +24,18 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
-
 use alloc::vec::Vec;
 use pallet_transaction_payment::{FeeDetails, RuntimeDispatchInfo};
 use polkadot_sdk::{
+	frame_support::{
+		traits::Get,
+	},
 	polkadot_sdk_frame::{
 		self as frame,
-		deps::sp_genesis_builder,
+		deps::{
+			sp_genesis_builder,
+			sp_core,
+		},
 		runtime::{apis, prelude::*},
 	},
 	*,
@@ -38,7 +43,7 @@ use polkadot_sdk::{
 
 // Local pallets
 pub use pallet_healer_network;
-pub use pallet_poh;
+// pub use pallet_poh;
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -65,7 +70,7 @@ pub use polkadot_sdk::{
 			IdentityFee, Weight,
 		},
 	}
-}
+};
 
 /// Provides getters for genesis configuration presets.
 pub mod genesis_config_presets {
@@ -120,6 +125,11 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("healer-network-runtime"),
 	impl_name: alloc::borrow::Cow::Borrowed("healer-network-runtime"),
 	authoring_version: 1,
+	// The version of the runtime specification. A full node will not attempt to use its native
+	//   runtime in substitute for the on-chain Wasm runtime unless all of `spec_name`,
+	//   `spec_version`, and `authoring_version` are the same between Wasm and native.
+	// This value is set to 100 to notify Polkadot-JS App (https://polkadot.js.org/apps) to use
+	//   the compatible custom types.
 	spec_version: 0,
 	impl_version: 1,
 	apis: RUNTIME_API_VERSIONS,
@@ -193,12 +203,12 @@ mod runtime {
 	pub type TransactionPayment = pallet_transaction_payment::Pallet<Runtime>;
 
 	/// A minimal pallet template.
-	#[runtime::pallet_index(5)]
+	#[runtime::pallet_index(50)]
 	pub type Template = pallet_healer_network::Pallet<Runtime>;
 
-	/// Proof of History pallet.
-	#[runtime::pallet_index(6)]
-	pub type PoH = pallet_poh::Pallet<Runtime>;
+	// / Proof of History pallet.
+	// #[runtime::pallet_index(51)]
+	// pub type PoH = pallet_poh::Pallet<Runtime>;
 }
 
 parameter_types! {
@@ -210,35 +220,29 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type Block = Block;
 	type Version = Version;
+
 	// Use the account data from the balances pallet
 	type AccountData = pallet_balances::AccountData<<Runtime as pallet_balances::Config>::Balance>;
-	/// The ubiquitous event type.
-	type RuntimeEvent = RuntimeEvent;
-	/// Weight information for the extrinsics of this pallet.
-	type SystemWeightInfo = ();
+	type Nonce = u32;
+
+	// This is needed to make pjs-apps work and send txs
+	type AccountId = frame::runtime::types_common::AccountId;
 }
 
 // Implements the types required for the balances pallet.
 #[derive_impl(pallet_balances::config_preludes::TestDefaultConfig)]
 impl pallet_balances::Config for Runtime {
+	// Store the accounts in the system pallet -- this is a common practice in FRAME-based runtimes.
+	// See `pallet_balances::Account` for more information.
 	type AccountStore = System;
+	
+	type Balance = u128;
+	type ExistentialDeposit = ConstU128<10>;
 }
 
 // Implements the types required for the sudo pallet.
 #[derive_impl(pallet_sudo::config_preludes::TestDefaultConfig)]
 impl pallet_sudo::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-}
-
-// Implements the types required for the sudo pallet.
-#[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
-impl pallet_timestamp::Config for Runtime {
-	/// A timestamp: milliseconds since the unix epoch.
-	type Moment = u64;
-	type OnTimestampSet = Aura;
-	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
-	type WeightInfo = ();
 }
 
 // Implements the types required for the transaction payment pallet.
@@ -257,15 +261,18 @@ impl pallet_healer_network::Config for Runtime {
 	type WeightInfo = pallet_healer_network::weights::SubstrateWeight<Runtime>;
 }
 
-///  Implements the types required for the PoH pallet.
-impl pallet_poh::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Hasher = <Runtime as pallet_poh::Config>::Hasher;
-	type Time = <Runtime as pallet_poh::Config>::Time;
-	type Hash = <Runtime as pallet_poh::Config>::Hash;
-	type WeightInfo = pallet_poh::weights::SubstrateWeight<Runtime>;
-}
+// Implements the types required for the PoH pallet.
+// impl pallet_poh::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Hasher = <Runtime as pallet_poh::Config>::Hasher;
+// 	type Time = <Runtime as pallet_poh::Config>::Time;
+// 	type Hash = <Runtime as pallet_poh::Config>::Hash;
+// 	type WeightInfo = pallet_poh::weights::SubstrateWeight<Runtime>;
+// }
 
+// Implements the types required for the timestamp pallet. This is required for PJS.
+#[derive_impl(pallet_timestamp::config_preludes::TestDefaultConfig)]
+impl pallet_timestamp::Config for Runtime {}
 
 type Block = frame::runtime::types_common::BlockOf<Runtime, TxExtension>;
 type Header = HeaderFor<Runtime>;

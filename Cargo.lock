@@ -4918,7 +4918,6 @@ name = "healer-network-runtime"
 version = "0.1.0"
 dependencies = [
  "pallet-healer-network",
- "pallet-poh",
  "parity-scale-codec",
  "polkadot-sdk",
  "scale-info",

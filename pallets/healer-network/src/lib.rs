@@ -8,7 +8,7 @@
 use frame::prelude::*;
 
 use polkadot_sdk::{
-	polkadot_sdk_frame as frame,
+	polkadot_sdk_frame as frame
 };
 
 #[cfg(test)]
@@ -42,8 +42,6 @@ pub mod pallet {
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
-
-	pub type Balance = u128;
 
 	#[pallet::storage]
 	pub type Value<T> = StorageValue<Value = u32>;
