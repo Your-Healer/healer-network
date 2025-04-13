@@ -1,219 +1,71 @@
 <div align="center">
 
-# Polkadot SDK's Minimal Template
+# Base Parachain Template
 
 <img height="70px" alt="Polkadot SDK Logo" src="https://github.com/paritytech/polkadot-sdk/raw/master/docs/images/Polkadot_Logo_Horizontal_Pink_White.png#gh-dark-mode-only"/>
 <img height="70px" alt="Polkadot SDK Logo" src="https://github.com/paritytech/polkadot-sdk/raw/master/docs/images/Polkadot_Logo_Horizontal_Pink_Black.png#gh-light-mode-only"/>
+<br /><br />
+<a href="r0gue.io"><img src="https://github.com/user-attachments/assets/96830651-c3db-412a-9cb4-6fcd8ea6231b" alt="R0GUE Logo" /></a>
 
-> This is a minimal template for creating a blockchain based on Polkadot SDK.
->
-> This template is automatically updated after releases in the main [Polkadot SDK monorepo](https://github.com/paritytech/polkadot-sdk).
+[![Twitter URL](https://img.shields.io/twitter/follow/Pop?style=social)](https://x.com/onpopio/)
+[![Twitter URL](https://img.shields.io/twitter/follow/R0GUE?style=social)](https://twitter.com/gor0gue)
+[![Telegram](https://img.shields.io/badge/Telegram-gray?logo=telegram)](https://t.me/onpopio)
+
+> This template is used to generate parachains using [Pop CLI](https://github.com/r0gue-io/pop-cli) - an all-in-one tool for Polkadot development.
+
+> It is based on the [Polkadot SDK](https://github.com/paritytech/polkadot-sdk) and is updated by [R0GUE](r0gue.io) after releases in the main [Polkadot SDK monorepo](https://github.com/paritytech/polkadot-sdk).
 
 </div>
 
-## Table of Contents
+* ⏫ This template provides a starting point to build a [parachain](https://wiki.polkadot.network/docs/learn-parachains).
 
-- [Intro](#intro)
+* ☁️ It is based on the
+[Cumulus](https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/polkadot_sdk/cumulus/index.html) framework.
 
-- [Template Structure](#template-structure)
-
-- [Getting Started](#getting-started)
-
-- [Starting a Minimal Template Chain](#starting-a-minimal-template-chain)
-
-  - [Omni Node](#omni-node)
-  - [Minimal Template Node](#healer-network-node)
-  - [Zombienet with Omni Node](#zombienet-with-omni-node)
-  - [Zombienet with Minimal Template Node](#zombienet-with-healer-network-node)
-  - [Connect with the Polkadot-JS Apps Front-End](#connect-with-the-polkadot-js-apps-front-end)
-  - [Takeaways](#takeaways)
-
-- [Contributing](#contributing)
-
-- [Getting Help](#getting-help)
-
-## Intro
-
-- 🤏 This template is a minimal (in terms of complexity and the number of components)
-  template for building a blockchain node.
-
-- 🔧 Its runtime is configured with a single custom pallet as a starting point, and a handful of ready-made pallets
-  such as a [Balances pallet](https://paritytech.github.io/polkadot-sdk/master/pallet_balances/index.html).
-
-- 👤 The template has no consensus configured - it is best for experimenting with a single node network.
+* 🔧 Its runtime is configured with a single custom pallet as a starting point, and a handful of ready-made pallets
+such as a [Balances pallet](https://paritytech.github.io/polkadot-sdk/master/pallet_balances/index.html).
 
 ## Template Structure
 
 A Polkadot SDK based project such as this one consists of:
 
-- 🧮 the [Runtime](./runtime/README.md) - the core logic of the blockchain.
-- 🎨 the [Pallets](./pallets/README.md) - from which the runtime is constructed.
-- 💿 a [Node](./node/README.md) - the binary application (which is not part of the cargo default-members list and is not
-  compiled unless building the entire workspace).
+* 💿 [Node](./node/README.md) - the binary application.
+* 🧮 [Runtime](./runtime/README.md) - the core logic of the parachain.
 
 ## Getting Started
 
-- 🦀 The template is using the Rust language.
+#### Install [Pop CLI](https://github.com/r0gue-io/pop-cli) - the all-in-one Polkadot development tool:
+> Detailed installation instructions can be found [here](https://learn.onpop.io/v/cli/installing-pop-cli).
+```
+cargo install --force --locked pop-cli
+```
 
-- 👉 Check the
-  [Rust installation instructions](https://www.rust-lang.org/tools/install) for your system.
+#### Start a new parachain project with this template:
+```
+pop new parachain
+```
 
-- 🛠️ Depending on your operating system and Rust version, there might be additional
-  packages required to compile this template - please take note of the Rust compiler output.
-
-Fetch minimal template code:
-
+#### Learn how to run your parachain using the `pop up` command:
 ```sh
-git clone https://github.com/paritytech/polkadot-sdk-minimal-template.git minimal-template
-
-cd minimal-template
+pop up parachain -f ./network.toml
 ```
+> 👉 https://learn.onpop.io/v/appchains/guides/running-your-parachain
 
-## Starting a Minimal Template Chain
+### Learning Resources
 
-### Omni Node
+* 🧑‍🏫 To learn about Polkadot in general, [Polkadot.network](https://polkadot.network/) website is a good starting point.
 
-[Omni Node](https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/reference_docs/omni_node/index.html) can
-be used to run the minimal template's runtime. `polkadot-omni-node` binary crate usage is described at a high-level
-[on crates.io](https://crates.io/crates/polkadot-omni-node).
+  * ⭕ Learn more about parachains [here](https://wiki.polkadot.network/docs/learn-parachains).
 
-#### Install `polkadot-omni-node`
+* 🧑‍🔧 For technical introduction, [here](https://github.com/paritytech/polkadot-sdk#-documentation) are
+the Polkadot SDK documentation resources.
 
-Please see installation section on [crates.io/omni-node](https://crates.io/crates/polkadot-omni-node).
+* 📖 To learn how to develop parachains with Pop CLI, read the [guides](https://learn.onpop.io/v/appchains).
 
-#### Build `healer-network-runtime`
+### Support
 
-```sh
-cargo build -p healer-network-runtime --release
-```
+* 💡 Be part of our passionate community of Web3 pioneers. [Join our Telegram](https://t.me/onpopio)!
 
-#### Install `staging-chain-spec-builder`
+* 👥 Additionally, there are [GitHub issues](https://github.com/r0gue-io/base-parachain/issues) and
+[Polkadot Stack Exchange](https://polkadot.stackexchange.com/).
 
-Please see the installation section at [`crates.io/staging-chain-spec-builder`](https://crates.io/crates/staging-chain-spec-builder).
-
-#### Use chain-spec-builder to generate the chain_spec.json file
-
-```sh
-chain-spec-builder create --relay-chain "dev" --para-id 1000 --runtime \
-    target/release/wbuild/healer-network-runtime/healer_network_runtime.wasm named-preset development
-```
-
-**Note**: the `relay-chain` and `para-id` flags are extra bits of information required to
-configure the node for the case of representing a parachain that is connected to a relay chain.
-They are not relevant to minimal template business logic, but they are mandatory information for
-Omni Node, nonetheless.
-
-#### Run Omni Node
-
-Start Omni Node in development mode (sets up block production and finalization based on manual seal,
-sealing a new block every 3 seconds), with a minimal template runtime chain spec.
-
-```sh
-polkadot-omni-node --chain <path/to/chain_spec.json> --dev
-```
-
-### Minimal Template Node
-
-#### Build both node & runtime
-
-```sh
-cargo build --workspace --release
-```
-
-🐳 Alternatively, build the docker image which builds all the workspace members,
-and has as entry point the node binary:
-
-```sh
-docker build . -t polkadot-sdk-minimal-template
-```
-
-#### Start the `healer-network-node`
-
-The `healer-network-node` has dependency on the `healer-network-runtime`. It will use
-the `healer_network_runtime::WASM_BINARY` constant (which holds the WASM blob as a byte
-array) for chain spec building, while starting. This is in contrast to Omni Node which doesn't
-depend on a specific runtime, but asks for the chain spec at startup.
-
-```sh
-<target/release/path/to/healer-network-node> --tmp --consensus manual-seal-3000
-# or via docker
-docker run --rm polkadot-sdk-minimal-template
-```
-
-### Zombienet with Omni Node
-
-#### Install `zombienet`
-
-We can install `zombienet` as described [here](https://paritytech.github.io/zombienet/install.html#installation),
-and `zombienet-omni-node.toml` contains the network specification we want to start.
-
-#### Update `zombienet-omni-node.toml` with a valid chain spec path
-
-Before starting the network with zombienet we must update the network specification
-with a valid chain spec path. If we need to generate one, we can look up at the previous
-section for chain spec creation [here](#use-chain-spec-builder-to-generate-the-chain_specjson-file).
-
-Then make the changes in the network specification like so:
-
-```toml
-# ...
-chain = "dev"
-chain_spec_path = "<TO BE UPDATED WITH A VALID PATH>"
-default_args = ["--dev"]
-# ..
-```
-
-#### Start the network
-
-```sh
-zombienet --provider native spawn zombienet-omni-node.toml
-```
-
-### Zombienet with `healer-network-node`
-
-For this one we just need to have `zombienet` installed and run:
-
-```sh
-zombienet --provider native spawn zombienet-multi-node.toml
-```
-
-### Connect with the Polkadot-JS Apps Front-End
-
-- 🌐 You can interact with your local node using the
-  hosted version of the [Polkadot/Substrate
-  Portal](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944).
-
-- 🪐 A hosted version is also
-  available on [IPFS](https://dotapps.io/).
-
-- 🧑‍🔧 You can also find the source code and instructions for hosting your own instance in the
-  [`polkadot-js/apps`](https://github.com/polkadot-js/apps) repository.
-
-### Takeaways
-
-Previously minimal template's development chains:
-
-- ❌ Started in a multi-node setup will produce forks because minimal lacks consensus.
-- 🧹 Do not persist the state.
-- 💰 Are pre-configured with a genesis state that includes several pre-funded development accounts.
-- 🧑‍⚖️ One development account (`ALICE`) is used as `sudo` accounts.
-
-## Contributing
-
-- 🔄 This template is automatically updated after releases in the main [Polkadot SDK monorepo](https://github.com/paritytech/polkadot-sdk).
-
-- ➡️ Any pull requests should be directed to this [source](https://github.com/paritytech/polkadot-sdk/tree/master/templates/minimal).
-
-- 😇 Please refer to the monorepo's
-  [contribution guidelines](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/CONTRIBUTING.md) and
-  [Code of Conduct](https://github.com/paritytech/polkadot-sdk/blob/master/docs/contributor/CODE_OF_CONDUCT.md).
-
-## Getting Help
-
-- 🧑‍🏫 To learn about Polkadot in general, [Polkadot.network](https://polkadot.network/) website is a good starting point.
-
-- 🧑‍🔧 For technical introduction, [here](https://github.com/paritytech/polkadot-sdk#-documentation) are
-  the Polkadot SDK documentation resources.
-
-- 👥 Additionally, there are [GitHub issues](https://github.com/paritytech/polkadot-sdk/issues) and
-  [Substrate StackExchange](https://substrate.stackexchange.com/).
