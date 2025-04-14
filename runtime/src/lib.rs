@@ -42,9 +42,9 @@ extern crate alloc;
 
 use smallvec::smallvec;
 use sp_runtime::{
-    generic, impl_opaque_keys,
+    create_runtime_str, generic, impl_opaque_keys,
     traits::{BlakeTwo256, IdentifyAccount, Verify},
-    Cow, MultiSignature,
+    MultiSignature,
 };
 
 use sp_std::prelude::*;
@@ -100,7 +100,7 @@ pub type BlockId = generic::BlockId<Block>;
 
 /// The SignedExtension to the basic transaction logic.
 #[docify::export(template_signed_extra)]
-pub type TxExtension = (
+pub type SignedExtra = (
     frame_system::CheckNonZeroSender<Runtime>,
     frame_system::CheckSpecVersion<Runtime>,
     frame_system::CheckTxVersion<Runtime>,
@@ -115,7 +115,7 @@ pub type TxExtension = (
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic =
-    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, TxExtension>;
+    generic::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 
 /// Migrations to apply on runtime upgrade.
 pub type Migrations = pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>;
@@ -187,14 +187,14 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: Cow::Borrowed("healer-network-runtime"),
-    impl_name: Cow::Borrowed("healer-network-runtime"),
+    spec_name: create_runtime_str!("healer-network-runtime"),
+    impl_name: create_runtime_str!("healer-network-runtime"),
     authoring_version: 1,
     spec_version: 1,
     impl_version: 0,
     apis: apis::RUNTIME_API_VERSIONS,
     transaction_version: 1,
-    system_version: 1,
+    state_version: 1,
 };
 
 /// This determines the average expected block time that we are targeting.

@@ -5,7 +5,7 @@ use std::{sync::Arc, time::Duration};
 
 use cumulus_client_cli::CollatorOptions;
 // Local Runtime Types
-use parachain_template_runtime::{
+use healer_network_runtime::{
     apis::RuntimeApi,
     opaque::{Block, Hash},
 };
@@ -53,7 +53,7 @@ pub type Service = PartialComponents<
     ParachainBackend,
     (),
     sc_consensus::DefaultImportQueue<Block>,
-    sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient>,
+    sc_transaction_pool::FullPool<Block, ParachainClient>,
     (
         ParachainBlockImport,
         Option<Telemetry>,
@@ -111,15 +111,12 @@ pub fn new_partial(config: &Configuration) -> Result<Service, sc_service::Error>
         telemetry
     });
 
-    let transaction_pool = Arc::from(
-        sc_transaction_pool::Builder::new(
-            task_manager.spawn_essential_handle(),
-            client.clone(),
-            config.role.is_authority().into(),
-        )
-        .with_options(config.transaction_pool.clone())
-        .with_prometheus(config.prometheus_registry())
-        .build(),
+    let transaction_pool = sc_transaction_pool::BasicPool::new_full(
+        config.transaction_pool.clone(),
+        config.role.is_authority().into(),
+        config.prometheus_registry(),
+        task_manager.spawn_essential_handle(),
+        client.clone(),
     );
 
     let block_import = ParachainBlockImport::new(client.clone(), backend.clone());
@@ -180,7 +177,7 @@ fn start_consensus(
     telemetry: Option<TelemetryHandle>,
     task_manager: &TaskManager,
     relay_chain_interface: Arc<dyn RelayChainInterface>,
-    transaction_pool: Arc<sc_transaction_pool::TransactionPoolHandle<Block, ParachainClient>>,
+    transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient>>,
     keystore: KeystorePtr,
     relay_chain_slot_duration: Duration,
     para_id: ParaId,
@@ -296,7 +293,9 @@ pub async fn start_parachain_node(
     if parachain_config.offchain_worker.enabled {
         use futures::FutureExt;
 
-        let offchain_workers =
+        task_manager.spawn_handle().spawn(
+            "offchain-workers-runner",
+            "offchain-work",
             sc_offchain::OffchainWorkers::new(sc_offchain::OffchainWorkerOptions {
                 runtime_api_provider: client.clone(),
                 keystore: Some(params.keystore_container.keystore()),
@@ -308,13 +307,9 @@ pub async fn start_parachain_node(
                 is_validator: parachain_config.role.is_authority(),
                 enable_http_requests: false,
                 custom_extensions: move |_| vec![],
-            })?;
-        task_manager.spawn_handle().spawn(
-            "offchain-workers-runner",
-            "offchain-work",
-            offchain_workers
-                .run(client.clone(), task_manager.spawn_handle())
-                .boxed(),
+            })
+            .run(client.clone(), task_manager.spawn_handle())
+            .boxed(),
         );
     }
 
