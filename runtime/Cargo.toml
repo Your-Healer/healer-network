@@ -78,6 +78,10 @@ pallet-collator-selection.workspace = true
 parachains-common.workspace = true
 parachain-info.workspace = true
 
+# Local dependencies
+pallet-healer-network-template.workspace = true
+# pallet-poh.workspace = true
+
 [features]
 default = ["std"]
 std = [
@@ -111,6 +115,8 @@ std = [
   "pallet-transaction-payment-rpc-runtime-api/std",
   "pallet-transaction-payment/std",
   "pallet-xcm/std",
+  "pallet-healer-network-template/std",
+  # "pallet-poh/std",
   "parachain-info/std",
   "parachains-common/std",
   "polkadot-parachain-primitives/std",
@@ -150,6 +156,8 @@ runtime-benchmarks = [
   "pallet-sudo/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-xcm/runtime-benchmarks",
+  "pallet-healer-network-template/runtime-benchmarks",
+  # "pallet-poh/runtime-benchmarks",
   "parachains-common/runtime-benchmarks",
   "polkadot-parachain-primitives/runtime-benchmarks",
   "polkadot-runtime-common/runtime-benchmarks",
@@ -177,6 +185,8 @@ try-runtime = [
   "pallet-timestamp/try-runtime",
   "pallet-transaction-payment/try-runtime",
   "pallet-xcm/try-runtime",
+  "pallet-healer-network-template/try-runtime",
+  # "pallet-poh/try-runtime",
   "parachain-info/try-runtime",
   "polkadot-runtime-common/try-runtime",
   "sp-runtime/try-runtime",

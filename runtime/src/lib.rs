@@ -321,6 +321,10 @@ mod runtime {
     pub type CumulusXcm = cumulus_pallet_xcm::Pallet<Runtime>;
     #[runtime::pallet_index(33)]
     pub type MessageQueue = pallet_message_queue::Pallet<Runtime>;
+
+    // Local pallets
+    // #[runtime::pallet_index(50)]
+    // pub type Template = pallet_healer_network_template::Pallet<Runtime>;
 }
 
 cumulus_pallet_parachain_system::register_validate_block! {

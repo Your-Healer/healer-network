@@ -27,6 +27,8 @@ serde_json.workspace = true
 
 # Local
 healer-network-runtime.workspace = true
+# pallet-healer-network-template.workspace = true
+# pallet-poh.workspace = true
 
 # Substrate
 frame-benchmarking.workspace = true
@@ -80,7 +82,11 @@ cumulus-relay-chain-interface.workspace = true
 
 [features]
 default = ["std"]
-std = ["xcm/std"]
+std = [
+  "xcm/std",
+  # "pallet-healer-network-template/std",
+  # "pallet-poh/std"
+]
 runtime-benchmarks = [
   "cumulus-primitives-core/runtime-benchmarks",
   "frame-benchmarking-cli/runtime-benchmarks",
@@ -90,9 +96,13 @@ runtime-benchmarks = [
   "polkadot-primitives/runtime-benchmarks",
   "sc-service/runtime-benchmarks",
   "sp-runtime/runtime-benchmarks",
+  # "pallet-healer-network-template/runtime-benchmarks",
+  # "pallet-poh/runtime-benchmarks",
 ]
 try-runtime = [
   "healer-network-runtime/try-runtime",
   "polkadot-cli/try-runtime",
   "sp-runtime/try-runtime",
+  # "pallet-healer-network-template/try-runtime",
+  # "pallet-poh/try-runtime",
 ]

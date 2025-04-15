@@ -9,7 +9,12 @@ license = "Unlicense"
 repository = "https://github.com/r0gue-io/base-parachain"
 
 [workspace]
-members = ["node", "runtime", "pallets/healer-network-template"]
+members = [
+  "node",
+  "runtime",
+  "pallets/pallet-healer-network-template",
+  "pallets/pallet-poh",
+]
 resolver = "2"
 
 [workspace.dependencies]
@@ -36,7 +41,8 @@ substrate-wasm-builder = "24.0.1"
 
 # Local
 healer-network-runtime = { path = "./runtime" }
-pallet-healer-network-template = { path = "../pallets/pallet-healer-network-template", default-features = false }
+pallet-healer-network-template = { path = "./pallets/pallet-healer-network-template", default-features = false }
+pallet-poh = { path = "./pallets/pallet-poh", default-features = false }
 
 # Substrate
 frame-benchmarking = { version = "38.0.0", default-features = false }

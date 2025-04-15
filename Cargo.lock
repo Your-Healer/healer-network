@@ -4041,6 +4041,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-healer-network-template",
  "pallet-message-queue",
  "pallet-session",
  "pallet-sudo",
@@ -7345,6 +7346,16 @@ dependencies = [
  "serde",
  "sp-core 34.0.0",
  "sp-runtime 39.0.5",
+]
+
+[[package]]
+name = "pallet-poh"
+version = "0.1.0"
+dependencies = [
+ "frame-support 38.2.0",
+ "parity-scale-codec",
+ "polkadot-sdk-frame",
+ "scale-info",
 ]
 
 [[package]]

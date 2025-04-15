@@ -53,6 +53,10 @@ use sp_runtime::Perbill;
 use sp_version::RuntimeVersion;
 use xcm::latest::prelude::BodyId;
 
+/// Import the Local pallets
+// use pallet_healer_network_template;
+// use pallet_poh;
+
 // Local module imports
 use super::{
     weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight},
@@ -304,3 +308,8 @@ impl pallet_collator_selection::Config for Runtime {
     type ValidatorRegistration = Session;
     type WeightInfo = (); // Configure based on benchmarking results.
 }
+
+// impl pallet_healer_network_template::Config for Runtime {
+//     type RuntimeEvent = RuntimeEvent;
+//     type WeightInfo = (); // Configure based on benchmarking results.
+// }
