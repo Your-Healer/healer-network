@@ -37,6 +37,8 @@ use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::{traits::One, Perbill};
 use sp_version::RuntimeVersion;
+// use sp_core::Hasher;
+// use crate::opaque::Hash,
 
 // Local module imports
 use super::{
@@ -162,3 +164,19 @@ impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
+
+/// Configure the pallet-medical-record in pallets/medical-record.
+impl pallet_medical_record::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_medical_record::weights::SubstrateWeight<Runtime>;
+	// / The identifier used to distinguish between accounts.
+	// type AccountId = AccountId;
+}
+
+// impl pallet_poh::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Hash = Hash;
+// 	type Hasher = Hasher;
+// 	type Time = Time;
+// 	type WeightInfo = pallet_poh::weights::SubstrateWeight<Runtime>;
+// }

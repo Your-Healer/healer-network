@@ -6,7 +6,14 @@ repository = "https://github.com/paritytech/polkadot-sdk-solochain-template.git"
 edition = "2021"
 
 [workspace]
-members = ["node", "pallets/template", "pallets/poh", "runtime"]
+members = [
+    "node",
+    "pallets/template",
+    "pallets/poh",
+    # "pallets/medical-appointment",
+    "pallets/medical-record",
+    "runtime",
+]
 resolver = "2"
 
 [workspace.dependencies]
@@ -14,6 +21,8 @@ resolver = "2"
 healer-network-runtime = { path = "./runtime", default-features = false }
 pallet-template = { path = "./pallets/template", default-features = false }
 pallet-poh = { path = "./pallets/poh", default-features = false }
+# pallet-medical-appointment = { path = "./pallets/medical-appointment", default-features = false }
+pallet-medical-record = { path = "./pallets/medical-record", default-features = false }
 
 clap = { version = "4.5.13" }
 frame-benchmarking-cli = { version = "47.0.0", default-features = false }
