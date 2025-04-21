@@ -32,11 +32,11 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for pallet_medical_appointment.
+/// Weight functions needed for pallet_medical_record.
 pub trait WeightInfo {
 }
 
-/// Weights for pallet_medical_appointment using the Substrate node and recommended hardware.
+/// Weights for pallet_medical_record using the Substrate node and recommended hardware.
 pub struct SubstrateWeight<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 }

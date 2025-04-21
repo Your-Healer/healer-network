@@ -1,4 +1,4 @@
-use crate as pallet_medical_appointment;
+use crate as pallet_medical_record;
 use frame_support::derive_impl;
 use sp_runtime::BuildStorage;
 

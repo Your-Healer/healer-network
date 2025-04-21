@@ -29,7 +29,10 @@ use scale_info::prelude::vec::Vec;
 pub mod pallet {
 	// Import various useful types required by all FRAME pallets.
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{
+		pallet_prelude::*,
+		sp_runtime::traits::{Hash, Member},
+	};
 	use frame_system::pallet_prelude::*;
 	
 
@@ -55,7 +58,7 @@ pub mod pallet {
 	#[derive(
 		Encode,
 		Decode,
-		MaxEncodedLen,
+		// MaxEncodedLen,
 		TypeInfo,
 		CloneNoBound,
 		PartialEqNoBound,
@@ -68,8 +71,8 @@ pub mod pallet {
 		// pub(crate) appointment_id: u32,
 		pub(crate) record_hash: T::Hash,
 		pub(crate) data_pointer: u32,
-		// pub(crate) diagnosis: Vec<u8>,
-		// pub(crate) treatment: Vec<u8>,
+		pub(crate) diagnosis: Vec<u8>,
+		pub(crate) treatment: Vec<u8>,
 		pub(crate) created_at: BlockNumberFor<T>,
 	}
 	
@@ -164,10 +167,12 @@ pub mod pallet {
 				patient_id: patient_id.clone(),
 				doctor_id: doctor_id.clone(),
 				// appointment_id: appointment_id.clone(),
-				record_hash: T::Hash::default(), // Placeholder for the record hash
+				record_hash: T::Hashing::hash_of(
+					&(patient_id.clone(), doctor_id.clone(), diagnosis.clone(), treatment.clone(), data_pointer.clone())
+				), // Compute hash based on record data  
 				data_pointer,
-				// diagnosis,
-				// treatment,
+				diagnosis,
+				treatment,
 				created_at: block_number,
 			};
 
