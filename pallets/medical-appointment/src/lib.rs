@@ -27,7 +27,10 @@ pub use weights::*;
 pub mod pallet {
 	// Import various useful types required by all FRAME pallets.
 	use super::*;
-	use frame_support::pallet_prelude::*;
+	use frame_support::{
+		pallet_prelude::*,
+		traits::UnixTime,
+	};
 	use frame_system::pallet_prelude::*;
 
 	// The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
@@ -47,8 +50,10 @@ pub mod pallet {
 		/// A type representing the weights required by the dispatchables of this pallet.
 		type WeightInfo: WeightInfo;
 
+		type TimeProvider: UnixTime;
+
 		/// Appointment Status.
-		type RuntimeAppointmentStatus: From<AppointmentStatus>;
+		type RuntimeAppointmentStatus: From<AppointmentStatus> + Into<AppointmentStatus>;
 	}
 
 	#[derive(Encode, Decode, Clone, PartialEq, Eq, Debug, MaxEncodedLen, TypeInfo)]
@@ -74,10 +79,10 @@ pub mod pallet {
 		pub(crate) appointment_id: u32,
 		pub(crate) patient_id: T::AccountId,
 		pub(crate) doctor_id: T::AccountId,
-		pub(crate) scheduled_time: BlockNumberFor<T>,
-		// pub(crate) status: Option<AppointmentStatus>,
-		pub(crate) created_at: BlockNumberFor<T>,
-		pub(crate) updated_at: BlockNumberFor<T>,
+		pub(crate) scheduled_time: u64,
+		pub(crate) status: Option<AppointmentStatus>,
+		pub(crate) created_at: u64,
+		pub(crate) updated_at: u64,
 	}
 	
 	#[pallet::storage]
@@ -116,7 +121,7 @@ pub mod pallet {
 			/// The account of the doctor.
 			doctor_id: T::AccountId,
 			/// The scheduled time of the appointment.
-			scheduled_time: BlockNumberFor<T>,
+			scheduled_time: u64,
 		},
 
 		/// A appointments has been updated.
@@ -179,5 +184,46 @@ pub mod pallet {
 	/// The [`weight`] macro is used to assign a weight to each call.
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		#[pallet::weight(10_000)]
+		pub fn create_medical_appointment(
+			origin: OriginFor<T>,
+			patient_id: T::AccountId,
+			doctor_id: T::AccountId,
+			scheduled_time: u64,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+			let time: u64 = <T as Config>::TimeProvider::now().as_secs();
+
+			// Ensure the appointment time is in the future
+			ensure!(scheduled_time > time, Error::<T>::InvalidAppointmentTime);
+
+			let appointment_id = Self::next_appointment_id();
+
+			// Check if the appointment already exists
+			ensure!(!Appointments::<T>::contains_key(appointment_id), Error::<T>::AppointmentAlreadyExists);
+
+			let new_appointment = Appointment {
+				appointment_id,
+				patient_id: patient_id.clone(),
+				doctor_id: doctor_id.clone(),
+				scheduled_time,
+				status: Some(AppointmentStatus::default()),
+				created_at: time,
+				// <frame_system::Pallet<T>>::block_number()
+				updated_at: time,
+			};
+
+			Appointments::<T>::insert(appointment_id, new_appointment);
+			NextAppointmentId::<T>::put(appointment_id + 1);
+
+			Self::deposit_event(Event::AppointmentBooked {
+				appointment_id,
+				patient_id,
+				doctor_id,
+				scheduled_time,
+			});
+
+			Ok(())
+		}
 	}
 }
