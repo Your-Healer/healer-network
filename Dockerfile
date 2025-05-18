@@ -1,7 +1,7 @@
 # FROM docker.io/paritytech/ci-unified:latest as builder
 
 # Using a specific tag instead of latest is recommended for production
-FROM docker.io/paritytech/ci-unified:1.70.0-bullseye as builder
+FROM docker.io/paritytech/ci-unified:bullseye-1.85.0-2025-01-28 as builder
 
 WORKDIR /polkadot
 COPY . /polkadot
