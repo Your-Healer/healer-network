@@ -1,13 +1,13 @@
 FROM docker.io/paritytech/ci-unified:latest as builder
 
 # Using a specific tag instead of latest is recommended for production
-# FROM docker.io/paritytech/ci-unified:1.70.0-bullseye as builder
+FROM docker.io/paritytech/ci-unified:1.70.0-bullseye as builder
 
 WORKDIR /polkadot
 COPY . /polkadot
 
 # Optionally install system dependencies if needed
-# RUN apt-get update && apt-get install -y ...
+RUN apt-get update && apt-get install -y ...
 
 RUN cargo fetch
 RUN cargo build --locked --release
