@@ -1,38 +1,38 @@
-# FROM docker.io/paritytech/ci-unified:latest as builder
+FROM docker.io/paritytech/ci-unified:latest as builder
 
 # Using a specific tag instead of latest is recommended for production
-FROM docker.io/paritytech/ci-unified:bullseye-1.85.0-2025-01-28 as builder
+# FROM docker.io/paritytech/ci-unified:bullseye-1.85.0-2025-01-28 as builder
 
-WORKDIR /polkadot
-COPY . /polkadot
+WORKDIR /healer-network
+COPY . /healer-network
 
 # Optionally install system dependencies if needed
 RUN apt-get update && apt-get install -y
 
 RUN cargo fetch
-RUN cargo build --locked --release
+RUN cargo build --workspace --locked --release
 
 FROM docker.io/parity/base-bin:latest
 
 # Verify binary name matches your project's output
-COPY --from=builder /polkadot/target/release/healer-network-node /usr/local/bin
+COPY --from=builder /healer-network/target/release/healer-network-node /usr/local/bin
 
 USER root
-RUN useradd -m -u 1001 -U -s /bin/sh -d /polkadot polkadot && \
-	mkdir -p /data /polkadot/.local/share/healer-network-node && \
-	chown -R polkadot:polkadot /data /polkadot/.local && \
-	ln -s /data /polkadot/.local/share/healer-network-node/chains && \
-# unclutter and minimize the attack surface
+RUN useradd -m -u 1001 -U -s /bin/sh -d /healer-network healer-network && \
+	mkdir -p /data /healer-network/.local/share/healer-network-node && \
+	chown -R healer-network:healer-network /data /healer-network/.local && \
+	ln -s /data /healer-network/.local/share/healer-network-node/chains && \
+	# unclutter and minimize the attack surface
 	rm -rf /usr/bin /usr/sbin && \
-# check if executable works in this container
+	# check if executable works in this container
 	/usr/local/bin/healer-network-node --version
 
-USER polkadot
+USER healer-network
 
 # Default ports for Substrate nodes
 EXPOSE 30333 9933 9944 9615
 VOLUME ["/data"]
 
-# Set default arguments to specify the correct data path
+# Set default arguments to specify the correct data path and network binding
 ENTRYPOINT ["/usr/local/bin/healer-network-node"]
-CMD ["--base-path=/data", "--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external"]
+CMD ["--base-path=/data", "--chain=dev", "--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--rpc-bind-address=0.0.0.0", "--ws-external", "--ws-bind-address=0.0.0.0", "--listen-addr=/ip4/0.0.0.0/tcp/30333", "--prometheus-external", "--prometheus-bind-address=0.0.0.0", "--validator", "--alice"]
