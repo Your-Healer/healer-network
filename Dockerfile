@@ -35,4 +35,4 @@ VOLUME ["/data"]
 
 # Set default arguments to specify the correct data path and network binding
 ENTRYPOINT ["/usr/local/bin/healer-network-node"]
-CMD ["--base-path=/data", "--chain=dev", "--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--validator", "--alice"]
+CMD ["--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--validator", "--alice"]
