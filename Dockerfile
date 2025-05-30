@@ -35,4 +35,4 @@ VOLUME ["/data"]
 
 # Set default arguments to specify the correct data path and network binding
 ENTRYPOINT ["/usr/local/bin/healer-network-node"]
-CMD ["--base-path=/data", "--chain=dev", "--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--rpc-bind-address=0.0.0.0", "--ws-external", "--ws-bind-address=0.0.0.0", "--listen-addr=/ip4/0.0.0.0/tcp/30333", "--prometheus-external", "--prometheus-bind-address=0.0.0.0", "--validator", "--alice"]
+CMD ["--base-path=/data", "--chain=dev", "--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--validator", "--alice"]
