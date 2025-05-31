@@ -15,4 +15,7 @@ docker run -d \
   --unsafe-rpc-external \
   --rpc-methods=unsafe \
   --rpc-external \
-  --prometheus-external
+  --prometheus-external \
+  --validator \
+  --alice \
+  --force-authoring
