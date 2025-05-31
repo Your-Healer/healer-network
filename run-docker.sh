@@ -1,7 +1,3 @@
-# Remove any existing container with the same name
-docker stop healer-network-node 2>/dev/null
-docker rm healer-network-node 2>/dev/null
-
 # Run the healer-network node with proper network configuration
 docker run -d \
   --name healer-network-node \
@@ -15,5 +11,4 @@ docker run -d \
   --unsafe-rpc-external \
   --rpc-methods=unsafe \
   --rpc-external \
-  --validator \
-  --alice
+  --prometheus-external
