@@ -19,15 +19,18 @@ COPY --from=builder /healer-network/target/release/healer-network-node /usr/loca
 
 USER root
 RUN useradd -m -u 1001 -U -s /bin/sh -d /healer-network healer-network && \
-	mkdir -p /data /healer-network/.local/share && \
+	mkdir -p /data && \
+	mkdir -p /healer-network/.local/share/healer-network-node && \
+	chmod 755 /data && \
 	chown -R healer-network:healer-network /data && \
-	ln -s /data /healer-network/.local/share/healer-network && \
+	chown -R healer-network:healer-network /healer-network && \
 	# unclutter and minimize the attack surface
 	rm -rf /usr/bin /usr/sbin && \
 	# check if executable works in this container
 	/usr/local/bin/healer-network-node --version
 
 USER healer-network
+WORKDIR /healer-network
 
 # Default ports for Substrate nodes
 EXPOSE 30333 9933 9944 9615
@@ -35,4 +38,4 @@ VOLUME ["/data"]
 
 # Set default arguments to specify the correct data path and network binding
 ENTRYPOINT ["/usr/local/bin/healer-network-node"]
-# CMD ["--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--validator", "--alice"]
+CMD ["--base-path=/data", "--chain=dev", "--rpc-cors=all", "--unsafe-rpc-external", "--rpc-methods=unsafe", "--rpc-external", "--validator", "--alice"]
