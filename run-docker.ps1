@@ -27,9 +27,9 @@ docker run -d `
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "Container started successfully!"
-    Write-Host "RPC endpoint: ws://localhost:9944"
-    Write-Host "HTTP RPC endpoint: http://localhost:9933"
-    Write-Host "Prometheus metrics: http://localhost:9615"
+    Write-Host "RPC endpoint: ws://0.0.0.0:9944"
+    Write-Host "HTTP RPC endpoint: http://0.0.0.0:9933"
+    Write-Host "Prometheus metrics: http://0.0.0.0:9615"
     Write-Host ""
     Write-Host "To view logs: docker logs -f healer-network-node"
     Write-Host "To stop: docker stop healer-network-node"

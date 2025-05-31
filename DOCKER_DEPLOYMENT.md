@@ -47,7 +47,7 @@ sudo ufw status
 # Test local connection first
 curl -X POST -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"system_health","params":[],"id":1}' \
-  http://localhost:9933
+  http://0.0.0.0:9933
 ```
 
 #### 2. Docker container exits immediately

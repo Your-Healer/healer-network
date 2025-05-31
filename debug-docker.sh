@@ -105,14 +105,14 @@ echo
 # Check if ports are listening
 echo "🔌 Checking if ports are accessible..."
 echo "Testing RPC port 9933:"
-if curl -s -X POST -H "Content-Type: application/json" -d '{"id":1,"jsonrpc":"2.0","method":"system_health","params":[]}' http://localhost:9933 >/dev/null; then
+if curl -s -X POST -H "Content-Type: application/json" -d '{"id":1,"jsonrpc":"2.0","method":"system_health","params":[]}' http://0.0.0.0:9933 >/dev/null; then
     echo "✅ RPC port 9933 is accessible"
 else
     echo "❌ RPC port 9933 is not accessible"
 fi
 
 echo "Testing WebSocket port 9944:"
-if curl -s -I http://localhost:9944 >/dev/null; then
+if curl -s -I http://0.0.0.0:9944 >/dev/null; then
     echo "✅ WebSocket port 9944 is accessible"
 else
     echo "❌ WebSocket port 9944 is not accessible"

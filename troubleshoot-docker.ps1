@@ -40,7 +40,7 @@ Write-Host "4. Checking port availability..." -ForegroundColor Cyan
 $ports = @(9944, 9933, 9615, 30333)
 foreach ($port in $ports) {
     try {
-        $connection = Test-NetConnection -ComputerName localhost -Port $port -InformationLevel Quiet -WarningAction SilentlyContinue
+        $connection = Test-NetConnection -ComputerName 0.0.0.0 -Port $port -InformationLevel Quiet -WarningAction SilentlyContinue
         if ($connection) {
             Write-Host "✓ Port $port is accessible" -ForegroundColor Green
         } else {
@@ -68,4 +68,4 @@ Write-Host "Remove container: docker rm healer-network-node" -ForegroundColor Cy
 Write-Host "Rebuild image: .\build-docker.ps1" -ForegroundColor Cyan
 Write-Host "Start container: .\run-docker.ps1" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Test RPC connection: curl http://localhost:9933 -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}'" -ForegroundColor Cyan
+Write-Host "Test RPC connection: curl http://0.0.0.0:9933 -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}'" -ForegroundColor Cyan

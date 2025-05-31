@@ -46,7 +46,7 @@ echo ""
 echo -e "${BLUE}4. Checking port accessibility...${NC}"
 ports=(9944 9933 9615 30333)
 for port in "${ports[@]}"; do
-    if nc -z localhost $port 2>/dev/null; then
+    if nc -z 0.0.0.0 $port 2>/dev/null; then
         echo -e "${GREEN}✓ Port $port is accessible${NC}"
     else
         echo -e "${RED}✗ Port $port is not accessible${NC}"
@@ -76,7 +76,7 @@ echo ""
 echo -e "${BLUE}6. Testing RPC connection...${NC}"
 if curl -s -X POST -H "Content-Type: application/json" \
    -d '{"jsonrpc":"2.0","method":"system_health","params":[],"id":1}' \
-   http://localhost:9933 > /dev/null 2>&1; then
+   http://0.0.0.0:9933 > /dev/null 2>&1; then
     echo -e "${GREEN}✓ RPC endpoint is responding${NC}"
 else
     echo -e "${RED}✗ RPC endpoint is not responding${NC}"
@@ -87,7 +87,7 @@ echo ""
 echo -e "${BLUE}7. Testing WebSocket connection...${NC}"
 if command -v wscat > /dev/null 2>&1; then
     # Use timeout to prevent hanging
-    if timeout 5 wscat -c ws://localhost:9944 --execute '{"jsonrpc":"2.0","method":"system_health","params":[],"id":1}' > /dev/null 2>&1; then
+    if timeout 5 wscat -c ws://0.0.0.0:9944 --execute '{"jsonrpc":"2.0","method":"system_health","params":[],"id":1}' > /dev/null 2>&1; then
         echo -e "${GREEN}✓ WebSocket endpoint is responding${NC}"
     else
         echo -e "${RED}✗ WebSocket endpoint is not responding${NC}"
@@ -113,7 +113,7 @@ echo -e "${BLUE}Remove container:${NC} docker rm healer-network-node"
 echo -e "${BLUE}Rebuild image:${NC} ./build-docker.sh"
 echo -e "${BLUE}Start container:${NC} ./run-docker.sh"
 echo ""
-echo -e "${BLUE}Test RPC:${NC} curl -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}' http://localhost:9933"
+echo -e "${BLUE}Test RPC:${NC} curl -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}' http://0.0.0.0:9933"
 echo -e "${BLUE}Test from external:${NC} curl -X POST -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"system_health\",\"params\":[],\"id\":1}' http://YOUR_VPS_IP:9933"
 echo ""
 echo -e "${YELLOW}=== For VPS External Access ===${NC}"
