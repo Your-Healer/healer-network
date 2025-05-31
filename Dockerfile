@@ -3,6 +3,8 @@ FROM docker.io/paritytech/ci-unified:latest as builder
 WORKDIR /polkadot
 COPY . /polkadot
 
+RUN apt-get update && apt-get install -y
+
 RUN cargo fetch
 RUN cargo build --locked --release
 
@@ -12,9 +14,9 @@ COPY --from=builder /polkadot/target/release/healer-network-node /usr/local/bin
 
 USER root
 RUN useradd -m -u 1001 -U -s /bin/sh -d /polkadot polkadot && \
-	mkdir -p /data /polkadot/.local/share && \
-	chown -R polkadot:polkadot /data && \
-	ln -s /data /polkadot/.local/share/polkadot && \
+	mkdir -p /data /polkadot/.local/share/healer-network-node && \
+	chown -R polkadot:polkadot /data /polkadot/.local && \
+	ln -s /data /polkadot/.local/share/healer-network-node/chains && \
 	# unclutter and minimize the attack surface
 	rm -rf /usr/bin /usr/sbin && \
 	# check if executable works in this container
