@@ -15,7 +15,7 @@ RUN cargo build --workspace --locked --release
 FROM docker.io/parity/base-bin:latest
 
 # Verify binary name matches your project's output
-COPY --from=builder /polkadot/target/release/healer-network-node /usr/local/bin
+COPY --from=builder /healer-network/target/release/healer-network-node /usr/local/bin
 
 USER root
 RUN useradd -m -u 1001 -U -s /bin/sh -d /healer-network healer-network && \
