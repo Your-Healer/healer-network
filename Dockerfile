@@ -10,20 +10,20 @@ COPY . /healer-network
 RUN apt-get update && apt-get install -y
 
 RUN cargo fetch
-RUN cargo build --workspace --locked --release
+RUN cargo build --workspace --locked --profile production
+# RUN cargo build --workspace --locked --release
 
 FROM docker.io/parity/base-bin:latest
 
 # Verify binary name matches your project's output
-COPY --from=builder /healer-network/target/release/healer-network-node /usr/local/bin
+# COPY --from=builder /healer-network/target/release/healer-network-node /usr/local/bin
+COPY --from=builder /healer-network/target/production/healer-network-node /usr/local/bin
 
 USER root
 RUN useradd -m -u 1001 -U -s /bin/sh -d /healer-network healer-network && \
-	mkdir -p /data && \
-	mkdir -p /healer-network/.local/share/healer-network-node && \
-	chmod 755 /data && \
+	mkdir -p /data /healer-network/.local/share && \
 	chown -R healer-network:healer-network /data && \
-	chown -R healer-network:healer-network /healer-network && \
+	ln -s /data /healer-network/.local/share/healer-network && \
 	# unclutter and minimize the attack surface
 	rm -rf /usr/bin /usr/sbin && \
 	# check if executable works in this container
