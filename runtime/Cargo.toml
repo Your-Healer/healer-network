@@ -29,6 +29,8 @@ pallet-sudo.workspace = true
 # Local pallets
 pallet-template.workspace = true
 pallet-poh.workspace = true
+pallet-medical-appointment.workspace = true
+pallet-medical-record.workspace = true
 
 pallet-timestamp.workspace = true
 pallet-transaction-payment-rpc-runtime-api.workspace = true
@@ -73,6 +75,8 @@ std = [
 	"pallet-sudo/std",
 	"pallet-template/std",
 	"pallet-poh/std",
+	"pallet-medical-appointment/std",
+	"pallet-medical-record/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -105,6 +109,8 @@ runtime-benchmarks = [
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-template/runtime-benchmarks",
 	"pallet-poh/runtime-benchmarks",
+	"pallet-medical-appointment/runtime-benchmarks",
+	"pallet-medical-record/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
@@ -121,6 +127,8 @@ try-runtime = [
 	"pallet-sudo/try-runtime",
 	"pallet-template/try-runtime",
 	"pallet-poh/try-runtime",
+	"pallet-medical-appointment/try-runtime",
+	"pallet-medical-record/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"sp-runtime/try-runtime",

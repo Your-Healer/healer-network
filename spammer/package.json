@@ -1,0 +1,24 @@
+{
+  "name": "spammer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "batch_remark": "node batch_remark.js",
+    "batch_tka": "node batch_tka.js",
+    "presigned_no_fee": "node presigned_no_fee.js",
+    "presigned_remark": "node presigned_remark.js",
+    "presigned_tka": "node presigned_tka.js",
+    "real_time_remark": "node real_time_remark.js",
+    "real_time_tka": "node real_time_tka.js",
+    "stps": "node stps.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@polkadot/api": "^15.9.2",
+    "@polkadot/util-crypto": "^13.4.4"
+  }
+}

@@ -225,4 +225,14 @@ mod runtime {
 	// Include the custom logic from the pallet-template in the runtime.
 	#[runtime::pallet_index(7)]
 	pub type Template = pallet_template;
+
+	#[runtime::pallet_index(8)]
+	pub type MedicalRecord = pallet_medical_record;
+
+	#[runtime::pallet_index(9)]
+	pub type MedicalAppointment = pallet_medical_appointment;
+
+	// #[runtime::pallet_index(8)]
+	// pub type PoH = pallet_poh;
+
 }

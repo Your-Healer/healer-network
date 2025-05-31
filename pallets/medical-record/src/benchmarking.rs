@@ -3,7 +3,7 @@
 use super::*;
 
 #[allow(unused)]
-use crate::PoH as PoH;
+use crate::Pallet as MedicalRecord;
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
 
@@ -11,5 +11,5 @@ use frame_system::RawOrigin;
 mod benchmarks {
 	use super::*;
 
-	impl_benchmark_test_suite!(PoH, crate::mock::new_test_ext(), crate::mock::Test);
+	impl_benchmark_test_suite!(MedicalRecord, crate::mock::new_test_ext(), crate::mock::Test);
 }

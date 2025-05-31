@@ -108,7 +108,7 @@ db keystore network
 
 After you start the node template locally, you can interact with it using the
 hosted version of the [Polkadot/Substrate
-Portal](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944)
+Portal](https://polkadot.js.org/apps/#/explorer?rpc=ws://0.0.0.0:9944)
 front-end by connecting to the local node endpoint. A hosted version is also
 available on [IPFS](https://dotapps.io/). You can
 also find the source code and instructions for hosting your own instance in the

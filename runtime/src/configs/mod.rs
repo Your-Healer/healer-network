@@ -37,6 +37,8 @@ use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter, Multiplier
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_runtime::{traits::One, Perbill};
 use sp_version::RuntimeVersion;
+// use sp_core::Hasher;
+// use crate::opaque::Hash,
 
 // Local module imports
 use super::{
@@ -45,7 +47,9 @@ use super::{
 	System, EXISTENTIAL_DEPOSIT, SLOT_DURATION, VERSION,
 };
 
-const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+// @note - Modified for measurements
+const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(100);
+const EXECUTION_TIME: u64 = 2; // 2 seconds of compute time
 
 parameter_types! {
 	pub const BlockHashCount: BlockNumber = 2400;
@@ -53,10 +57,11 @@ parameter_types! {
 
 	/// We allow for 2 seconds of compute with a 6 second average block time.
 	pub RuntimeBlockWeights: BlockWeights = BlockWeights::with_sensible_defaults(
-		Weight::from_parts(2u64 * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
+		Weight::from_parts(EXECUTION_TIME * WEIGHT_REF_TIME_PER_SECOND, u64::MAX),
 		NORMAL_DISPATCH_RATIO,
 	);
-	pub RuntimeBlockLength: BlockLength = BlockLength::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
+	// @note - Modified for measurements
+	pub RuntimeBlockLength: BlockLength = BlockLength::max_with_normal_ratio(10 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
 	pub const SS58Prefix: u8 = 42;
 }
 
@@ -162,3 +167,27 @@ impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 }
+
+/// Configure the pallet-medical-record in pallets/medical-record.
+impl pallet_medical_record::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_medical_record::weights::SubstrateWeight<Runtime>;
+	// / The identifier used to distinguish between accounts.
+	// type AccountId = AccountId;
+}
+
+/// Configure the pallet-medical-appointment in pallets/medical-appointment.
+impl pallet_medical_appointment::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = pallet_medical_appointment::weights::SubstrateWeight<Runtime>;
+	type TimeProvider = pallet_timestamp::Pallet<Runtime>;
+	type RuntimeAppointmentStatus = pallet_medical_appointment::pallet::AppointmentStatus;
+}
+
+// impl pallet_poh::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Hash = Hash;
+// 	type Hasher = Hasher;
+// 	type Time = Time;
+// 	type WeightInfo = pallet_poh::weights::SubstrateWeight<Runtime>;
+// }
