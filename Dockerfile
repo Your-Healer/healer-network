@@ -6,13 +6,7 @@ COPY . /polkadot
 RUN apt-get update && apt-get install -y
 
 RUN cargo fetch
-RUN cargo build --locked --release && \
-	# Clean up cargo cache and temporary files
-	cargo clean && \
-	rm -rf ~/.cargo/registry/cache && \
-	rm -rf ~/.cargo/git/db && \
-	rm -rf /polkadot/target/debug && \
-	rm -rf /polkadot/target/deps
+RUN cargo build --locked --release
 
 FROM docker.io/parity/base-bin:latest
 
