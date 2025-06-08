@@ -22,6 +22,7 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
+use scale_info::prelude::vec;
 use scale_info::prelude::vec::Vec;
 
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
@@ -32,9 +33,9 @@ pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
 		sp_runtime::traits::{Hash, Member},
+
 	};
 	use frame_system::pallet_prelude::*;
-	
 
 	// The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
 	// (`Call`s) in this pallet.
@@ -140,7 +141,7 @@ pub mod pallet {
 		pub(crate) patient_id: u32,
 		pub(crate) doctor_id: T::AccountId,
 		pub(crate) record_hash: T::Hash,
-		pub(crate) data_pointer: u32,
+		pub(crate) data_pointer: Option<Vec<u8>>,
 		pub(crate) diagnosis: Vec<u8>,
 		pub(crate) treatment: Vec<u8>,
 		pub(crate) created_at: BlockNumberFor<T>,
@@ -162,12 +163,12 @@ pub mod pallet {
 
 	// Storage for mapping patient names to patient IDs for search functionality
 	#[pallet::storage]
-	#[pallet::getter(fn patient_name_to_id)]
-	pub type PatientNameToId<T: Config> = StorageMap<
+	#[pallet::getter(fn patient_name_to_ids)]
+	pub type PatientNameToIds<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
 		Vec<u8>, // patient_name as key
-		u32,     // patient_id as value
+		Vec<u32>, // array of patient_ids as value
 		OptionQuery
 	>;
 
@@ -353,6 +354,11 @@ pub mod pallet {
 			patient_id: u32,
 			patient_name: Vec<u8>,
 		},
+		/// Multiple patients found by name search.
+		MultiplePatientsFoundByName {
+			patient_ids: Vec<u32>,
+			patient_name: Vec<u8>,
+		},
 		/// A change has been recorded in the audit trail.
 		ChangeRecorded {
 			change_id: u32,
@@ -408,12 +414,6 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			ensure!(!patient_name.is_empty(), Error::<T>::InvalidPatientData);
-			
-			// Check if patient name already exists
-			ensure!(
-				!PatientNameToId::<T>::contains_key(&patient_name),
-				Error::<T>::PatientNameAlreadyExists
-			);
 
 			let patient_id = Self::next_patient_id();
 			let block_number: BlockNumberFor<T> = <frame_system::Pallet<T>>::block_number();
@@ -434,8 +434,15 @@ pub mod pallet {
 
 			// Insert patient record
 			Patients::<T>::insert(patient_id, patient);
-			// Insert name mapping for search
-			PatientNameToId::<T>::insert(&patient_name, patient_id);
+			
+			// Add patient_id to the name mapping array
+			PatientNameToIds::<T>::mutate(&patient_name, |ids_opt| {
+				match ids_opt {
+					Some(ids) => ids.push(patient_id),
+					None => *ids_opt = Some(vec![patient_id]),
+				}
+			});
+			
 			NextPatientId::<T>::put(patient_id + 1);
 
 			// Record creation in audit trail
@@ -483,26 +490,37 @@ pub mod pallet {
 				if let Some(new_name) = patient_name {
 					ensure!(!new_name.is_empty(), Error::<T>::InvalidPatientData);
 					
-					// Check if new name already exists (unless it's the same patient)
-					if let Some(existing_id) = PatientNameToId::<T>::get(&new_name) {
-						ensure!(existing_id == patient_id, Error::<T>::PatientNameAlreadyExists);
-					}
-
+					let old_name = patient.patient_name.clone();
+					
 					// Record the change
 					Self::record_change(
 						RecordType::Patient,
 						patient_id,
 						b"patient_name".to_vec(),
-						Some(patient.patient_name.clone()),
+						Some(old_name.clone()),
 						new_name.clone(),
 						who.clone(),
 						OperationType::Update,
 					)?;
 
-					// Remove old name mapping
-					PatientNameToId::<T>::remove(&patient.patient_name);
-					// Add new name mapping
-					PatientNameToId::<T>::insert(&new_name, patient_id);
+					// Remove patient_id from old name mapping
+					PatientNameToIds::<T>::mutate(&old_name, |ids_opt| {
+						if let Some(ids) = ids_opt {
+							ids.retain(|&id| id != patient_id);
+							if ids.is_empty() {
+								*ids_opt = None;
+							}
+						}
+					});
+					
+					// Add patient_id to new name mapping
+					PatientNameToIds::<T>::mutate(&new_name, |ids_opt| {
+						match ids_opt {
+							Some(ids) => ids.push(patient_id),
+							None => *ids_opt = Some(vec![patient_id]),
+						}
+					});
+					
 					// Update patient name
 					patient.patient_name = new_name;
 				}
@@ -559,8 +577,16 @@ pub mod pallet {
 				OperationType::Delete,
 			)?;
 
-			// Remove name mapping
-			PatientNameToId::<T>::remove(&patient.patient_name);
+			// Remove patient_id from name mapping
+			PatientNameToIds::<T>::mutate(&patient.patient_name, |ids_opt| {
+				if let Some(ids) = ids_opt {
+					ids.retain(|&id| id != patient_id);
+					if ids.is_empty() {
+						*ids_opt = None;
+					}
+				}
+			});
+			
 			// Remove patient record
 			Patients::<T>::remove(patient_id);
 
@@ -577,13 +603,20 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			let patient_id = PatientNameToId::<T>::get(&patient_name)
+			let patient_ids = PatientNameToIds::<T>::get(&patient_name)
 				.ok_or(Error::<T>::PatientNotFoundByName)?;
 
-			Self::deposit_event(Event::PatientFoundByName {
-				patient_id,
-				patient_name,
-			});
+			if patient_ids.len() == 1 {
+				Self::deposit_event(Event::PatientFoundByName {
+					patient_id: patient_ids[0],
+					patient_name,
+				});
+			} else {
+				Self::deposit_event(Event::MultiplePatientsFoundByName {
+					patient_ids,
+					patient_name,
+				});
+			}
 
 			Ok(())
 		}
@@ -807,7 +840,7 @@ pub mod pallet {
 			patient_id: u32,
 			diagnosis: Vec<u8>,
 			treatment: Vec<u8>,
-			data_pointer: u32,
+			data_pointer: Option<Vec<u8>>,
 		) -> DispatchResult {
 			let doctor_id = ensure_signed(origin)?;
 
@@ -822,7 +855,7 @@ pub mod pallet {
 				patient_id,
 				doctor_id: doctor_id.clone(),
 				record_hash: T::Hashing::hash_of(
-					&(patient_id, doctor_id.clone(), diagnosis.clone(), treatment.clone(), data_pointer)
+					&(patient_id, doctor_id.clone(), diagnosis.clone(), treatment.clone(), data_pointer.clone())
 				),
 				data_pointer,
 				diagnosis,

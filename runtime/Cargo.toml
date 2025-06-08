@@ -1,7 +1,7 @@
 [package]
 name = "healer-network-runtime"
 description = "A healer network runtime built with Substrate, part of Polkadot Sdk."
-version = "0.1.0"
+version = "0.2.0"
 license = "Unlicense"
 authors.workspace = true
 homepage.workspace = true
@@ -76,7 +76,6 @@ std = [
 	"pallet-template/std",
 	"pallet-poh/std",
 	"pallet-medical-appointment/std",
-	"pallet-medical-record/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -97,6 +96,7 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 	"substrate-wasm-builder",
+	"pallet-medical-record/std",
 ]
 
 runtime-benchmarks = [

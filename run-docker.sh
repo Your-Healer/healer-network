@@ -11,6 +11,7 @@ docker run -d \
   -p 30333:30333 \
   -v healer-network-data:/data \
   healer-network:latest \
+  --dev \
   --rpc-cors=all \
   --unsafe-rpc-external \
   --rpc-methods=unsafe \
@@ -18,4 +19,5 @@ docker run -d \
   --prometheus-external \
   --validator \
   --alice \
+  --unsafe-force-node-key-generation \
   --force-authoring
