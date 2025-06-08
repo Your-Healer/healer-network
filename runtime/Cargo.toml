@@ -76,7 +76,6 @@ std = [
 	"pallet-template/std",
 	"pallet-poh/std",
 	"pallet-medical-appointment/std",
-	"pallet-medical-record/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -97,6 +96,7 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 	"substrate-wasm-builder",
+	"pallet-medical-record/std",
 ]
 
 runtime-benchmarks = [
