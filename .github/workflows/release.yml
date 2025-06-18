@@ -39,7 +39,7 @@ jobs:
         with:
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-  
+
   release-binaries:
     runs-on: ubuntu-latest
     steps:
@@ -54,12 +54,12 @@ jobs:
           rustup component add rust-src
 
       - name: Build the template
-        run: cargo build --locked --release --all-features --all-targets
+        run: cargo build --locked --release
         timeout-minutes: 90
 
       - name: Upload the binaries
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            target/release/minimal-template-node
-            target/release/wbuild/minimal-template-runtime/minimal_template_runtime.compact.compressed.wasm
+            target/release/healer-network-node
+            target/release/wbuild/healer-network-runtime/healer_network_runtime.compact.compressed.wasm
