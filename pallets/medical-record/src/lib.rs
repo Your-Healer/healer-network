@@ -22,8 +22,10 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
+use scale_info::prelude::vec::*;
 use scale_info::prelude::vec;
-use scale_info::prelude::vec::Vec;
+
+use scale_info::prelude::format;
 
 // All pallet logic is defined in its own module and must be annotated by the `pallet` attribute.
 #[frame_support::pallet(dev_mode)]
@@ -33,8 +35,8 @@ pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
 		sp_runtime::traits::{Hash, Member},
-
 	};
+
 	use frame_system::pallet_prelude::*;
 
 	// The `Pallet` struct serves as a placeholder to implement traits, methods and dispatchables
@@ -163,8 +165,8 @@ pub mod pallet {
 
 	// Storage for mapping patient names to patient IDs for search functionality
 	#[pallet::storage]
-	#[pallet::getter(fn patient_name_to_ids)]
-	pub type PatientNameToIds<T: Config> = StorageMap<
+	#[pallet::getter(fn patient_name_to_id)]
+	pub type PatientNameToId<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
 		Vec<u8>, // patient_name as key
@@ -183,6 +185,17 @@ pub mod pallet {
 		OptionQuery
 	>;
 
+	// Storage for mapping patient to their clinical tests
+	#[pallet::storage]
+	#[pallet::getter(fn patient_clinical_tests)]
+	pub type PatientClinicalTests<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		u32, // patient_id
+		Vec<u32>, // test_ids
+		ValueQuery
+	>;
+
 	// Storage for Disease Progressions
 	#[pallet::storage]
 	#[pallet::getter(fn disease_progressions)]
@@ -192,6 +205,66 @@ pub mod pallet {
 		u32,
 		DiseaseProgression<T>,
 		OptionQuery
+	>;
+
+	// Storage for mapping patient to their disease progressions
+	#[pallet::storage]
+	#[pallet::getter(fn patient_disease_progressions)]
+	pub type PatientDiseaseProgressions<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		u32, // patient_id
+		Vec<u32>, // progression_ids
+		ValueQuery
+	>;
+
+	// Storage for mapping doctor to their patients
+	#[pallet::storage]
+	#[pallet::getter(fn doctor_patients)]
+	pub type DoctorPatients<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::AccountId, // doctor_id
+		Vec<u32>, // patient_ids
+		ValueQuery
+	>;
+
+	// Storage for mapping patient to their doctors
+	#[pallet::storage]
+	#[pallet::getter(fn patient_doctors)]
+	pub type PatientDoctors<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		u32, // patient_id
+		Vec<T::AccountId>, // doctor_ids
+		ValueQuery
+	>;
+
+	// Storage for active patients (not deleted)
+	#[pallet::storage]
+	#[pallet::getter(fn active_patients)]
+	pub type ActivePatients<T: Config> = StorageValue<_, Vec<u32>, ValueQuery>;
+
+	// Storage for patients by gender for demographic queries
+	#[pallet::storage]
+	#[pallet::getter(fn patients_by_gender)]
+	pub type PatientsByGender<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		Vec<u8>, // gender
+		Vec<u32>, // patient_ids
+		ValueQuery
+	>;
+
+	// Storage for patients by age range (birth year)
+	#[pallet::storage]
+	#[pallet::getter(fn patients_by_birth_year)]
+	pub type PatientsByBirthYear<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		u32, // birth_year
+		Vec<u32>, // patient_ids
+		ValueQuery
 	>;
 
 	// Counter storages
@@ -221,6 +294,17 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn next_record_id)]
 	pub type NextRecordId<T: Config> = StorageValue<_, u32, ValueQuery>;
+
+	// Storage for mapping patient to their medical records
+	#[pallet::storage]
+	#[pallet::getter(fn patient_medical_records)]
+	pub type PatientMedicalRecords<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		u32, // patient_id
+		Vec<u32>, // record_ids
+		ValueQuery
+	>;
 
 	// Storage for Change History - comprehensive audit trail
 	#[pallet::storage]
@@ -359,6 +443,16 @@ pub mod pallet {
 			patient_ids: Vec<u32>,
 			patient_name: Vec<u8>,
 		},
+		/// Patients found by demographic search.
+		PatientsFoundByDemographics {
+			patient_ids: Vec<u32>,
+			search_criteria: Vec<u8>,
+		},
+		/// Patient medical history retrieved.
+		PatientHistoryRetrieved {
+			patient_id: u32,
+			records_count: u32,
+		},
 		/// A change has been recorded in the audit trail.
 		ChangeRecorded {
 			change_id: u32,
@@ -436,17 +530,30 @@ pub mod pallet {
 			Patients::<T>::insert(patient_id, patient);
 			
 			// Add patient_id to the name mapping array
-			PatientNameToIds::<T>::mutate(&patient_name, |ids_opt| {
+			PatientNameToId::<T>::mutate(&patient_name, |ids_opt| {
 				match ids_opt {
 					Some(ids) => ids.push(patient_id),
 					None => *ids_opt = Some(vec![patient_id]),
 				}
 			});
+
+			// Add to active patients list
+			ActivePatients::<T>::mutate(|patients| patients.push(patient_id));
+
+			// Add to gender mapping
+			PatientsByGender::<T>::mutate(&gender, |patients| patients.push(patient_id));
+
+			// Extract birth year and add to age mapping
+			if let Ok(birth_year_str) = core::str::from_utf8(&date_of_birth) {
+				if let Ok(birth_year) = birth_year_str[0..4].parse::<u32>() {
+					PatientsByBirthYear::<T>::mutate(birth_year, |patients| patients.push(patient_id));
+				}
+			}
 			
 			NextPatientId::<T>::put(patient_id + 1);
 
-			// Record creation in audit trail
-			Self::record_change(
+			// Record creation in audit trail - using internal helper
+			let _ = Self::do_record_change(
 				RecordType::Patient,
 				patient_id,
 				b"patient_name".to_vec(),
@@ -454,12 +561,12 @@ pub mod pallet {
 				patient_name.clone(),
 				who.clone(),
 				OperationType::Create,
-			)?;
-			Self::record_change(RecordType::Patient, patient_id, b"date_of_birth".to_vec(), None, date_of_birth, who.clone(), OperationType::Create)?;
-			Self::record_change(RecordType::Patient, patient_id, b"gender".to_vec(), None, gender, who.clone(), OperationType::Create)?;
-			Self::record_change(RecordType::Patient, patient_id, b"address".to_vec(), None, address, who.clone(), OperationType::Create)?;
-			Self::record_change(RecordType::Patient, patient_id, b"phone".to_vec(), None, phone, who.clone(), OperationType::Create)?;
-			Self::record_change(RecordType::Patient, patient_id, b"emergency_contact".to_vec(), None, emergency_contact, who, OperationType::Create)?;
+			);
+			let _ = Self::do_record_change(RecordType::Patient, patient_id, b"date_of_birth".to_vec(), None, date_of_birth, who.clone(), OperationType::Create);
+			let _ = Self::do_record_change(RecordType::Patient, patient_id, b"gender".to_vec(), None, gender, who.clone(), OperationType::Create);
+			let _ = Self::do_record_change(RecordType::Patient, patient_id, b"address".to_vec(), None, address, who.clone(), OperationType::Create);
+			let _ = Self::do_record_change(RecordType::Patient, patient_id, b"phone".to_vec(), None, phone, who.clone(), OperationType::Create);
+			let _ = Self::do_record_change(RecordType::Patient, patient_id, b"emergency_contact".to_vec(), None, emergency_contact, who, OperationType::Create);
 
 			Self::deposit_event(Event::PatientCreated {
 				patient_id,
@@ -493,7 +600,7 @@ pub mod pallet {
 					let old_name = patient.patient_name.clone();
 					
 					// Record the change
-					Self::record_change(
+					Self::do_record_change(
 						RecordType::Patient,
 						patient_id,
 						b"patient_name".to_vec(),
@@ -504,7 +611,7 @@ pub mod pallet {
 					)?;
 
 					// Remove patient_id from old name mapping
-					PatientNameToIds::<T>::mutate(&old_name, |ids_opt| {
+					PatientNameToId::<T>::mutate(&old_name, |ids_opt| {
 						if let Some(ids) = ids_opt {
 							ids.retain(|&id| id != patient_id);
 							if ids.is_empty() {
@@ -514,7 +621,7 @@ pub mod pallet {
 					});
 					
 					// Add patient_id to new name mapping
-					PatientNameToIds::<T>::mutate(&new_name, |ids_opt| {
+					PatientNameToId::<T>::mutate(&new_name, |ids_opt| {
 						match ids_opt {
 							Some(ids) => ids.push(patient_id),
 							None => *ids_opt = Some(vec![patient_id]),
@@ -525,23 +632,23 @@ pub mod pallet {
 					patient.patient_name = new_name;
 				}
 				if let Some(dob) = date_of_birth {
-					Self::record_change(RecordType::Patient, patient_id, b"date_of_birth".to_vec(), Some(patient.date_of_birth.clone()), dob.clone(), who.clone(), OperationType::Update)?;
+					Self::do_record_change(RecordType::Patient, patient_id, b"date_of_birth".to_vec(), Some(patient.date_of_birth.clone()), dob.clone(), who.clone(), OperationType::Update)?;
 					patient.date_of_birth = dob;
 				}
 				if let Some(g) = gender {
-					Self::record_change(RecordType::Patient, patient_id, b"gender".to_vec(), Some(patient.gender.clone()), g.clone(), who.clone(), OperationType::Update)?;
+					Self::do_record_change(RecordType::Patient, patient_id, b"gender".to_vec(), Some(patient.gender.clone()), g.clone(), who.clone(), OperationType::Update)?;
 					patient.gender = g;
 				}
 				if let Some(addr) = address {
-					Self::record_change(RecordType::Patient, patient_id, b"address".to_vec(), Some(patient.address.clone()), addr.clone(), who.clone(), OperationType::Update)?;
+					Self::do_record_change(RecordType::Patient, patient_id, b"address".to_vec(), Some(patient.address.clone()), addr.clone(), who.clone(), OperationType::Update)?;
 					patient.address = addr;
 				}
 				if let Some(p) = phone {
-					Self::record_change(RecordType::Patient, patient_id, b"phone".to_vec(), Some(patient.phone.clone()), p.clone(), who.clone(), OperationType::Update)?;
+					Self::do_record_change(RecordType::Patient, patient_id, b"phone".to_vec(), Some(patient.phone.clone()), p.clone(), who.clone(), OperationType::Update)?;
 					patient.phone = p;
 				}
 				if let Some(ec) = emergency_contact {
-					Self::record_change(RecordType::Patient, patient_id, b"emergency_contact".to_vec(), Some(patient.emergency_contact.clone()), ec.clone(), who.clone(), OperationType::Update)?;
+					Self::do_record_change(RecordType::Patient, patient_id, b"emergency_contact".to_vec(), Some(patient.emergency_contact.clone()), ec.clone(), who.clone(), OperationType::Update)?;
 					patient.emergency_contact = ec;
 				}
 
@@ -567,7 +674,7 @@ pub mod pallet {
 			let patient = Patients::<T>::get(patient_id).ok_or(Error::<T>::PatientNotFound)?;
 
 			// Record deletion in audit trail
-			Self::record_change(
+			Self::do_record_change(
 				RecordType::Patient,
 				patient_id,
 				b"deleted".to_vec(),
@@ -577,8 +684,8 @@ pub mod pallet {
 				OperationType::Delete,
 			)?;
 
-			// Remove patient_id from name mapping
-			PatientNameToIds::<T>::mutate(&patient.patient_name, |ids_opt| {
+			// Remove from all mappings
+			PatientNameToId::<T>::mutate(&patient.patient_name, |ids_opt| {
 				if let Some(ids) = ids_opt {
 					ids.retain(|&id| id != patient_id);
 					if ids.is_empty() {
@@ -586,6 +693,16 @@ pub mod pallet {
 					}
 				}
 			});
+
+			ActivePatients::<T>::mutate(|patients| patients.retain(|&id| id != patient_id));
+			PatientsByGender::<T>::mutate(&patient.gender, |patients| patients.retain(|&id| id != patient_id));
+
+			// Remove from birth year mapping
+			if let Ok(birth_year_str) = core::str::from_utf8(&patient.date_of_birth) {
+				if let Ok(birth_year) = birth_year_str[0..4].parse::<u32>() {
+					PatientsByBirthYear::<T>::mutate(birth_year, |patients| patients.retain(|&id| id != patient_id));
+				}
+			}
 			
 			// Remove patient record
 			Patients::<T>::remove(patient_id);
@@ -603,7 +720,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			let patient_ids = PatientNameToIds::<T>::get(&patient_name)
+			let patient_ids = PatientNameToId::<T>::get(&patient_name)
 				.ok_or(Error::<T>::PatientNotFoundByName)?;
 
 			if patient_ids.len() == 1 {
@@ -654,6 +771,24 @@ pub mod pallet {
 			};
 
 			ClinicalTests::<T>::insert(test_id, clinical_test);
+			
+			// Add to patient's test list
+			PatientClinicalTests::<T>::mutate(patient_id, |tests| tests.push(test_id));
+			
+			// Add to doctor's patient list if not already there
+			DoctorPatients::<T>::mutate(&doctor_id, |patients| {
+				if !patients.contains(&patient_id) {
+					patients.push(patient_id);
+				}
+			});
+			
+			// Add doctor to patient's doctor list if not already there
+			PatientDoctors::<T>::mutate(patient_id, |doctors| {
+				if !doctors.contains(&doctor_id) {
+					doctors.push(doctor_id.clone());
+				}
+			});
+			
 			NextTestId::<T>::put(test_id + 1);
 
 			Self::deposit_event(Event::ClinicalTestCreated {
@@ -712,7 +847,12 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			ensure!(ClinicalTests::<T>::contains_key(test_id), Error::<T>::ClinicalTestNotFound);
+			let test = ClinicalTests::<T>::get(test_id).ok_or(Error::<T>::ClinicalTestNotFound)?;
+			
+			// Remove from patient's test list
+			PatientClinicalTests::<T>::mutate(test.patient_id, |tests| {
+				tests.retain(|&id| id != test_id);
+			});
 
 			ClinicalTests::<T>::remove(test_id);
 
@@ -758,6 +898,26 @@ pub mod pallet {
 			};
 
 			DiseaseProgressions::<T>::insert(progression_id, progression);
+			
+			// Add to patient's progression list
+			PatientDiseaseProgressions::<T>::mutate(patient_id, |progressions| {
+				progressions.push(progression_id);
+			});
+			
+			// Add to doctor's patient list if not already there
+			DoctorPatients::<T>::mutate(&doctor_id, |patients| {
+				if !patients.contains(&patient_id) {
+					patients.push(patient_id);
+				}
+			});
+			
+			// Add doctor to patient's doctor list if not already there
+			PatientDoctors::<T>::mutate(patient_id, |doctors| {
+				if !doctors.contains(&doctor_id) {
+					doctors.push(doctor_id.clone());
+				}
+			});
+			
 			NextProgressionId::<T>::put(progression_id + 1);
 
 			Self::deposit_event(Event::DiseaseProgressionCreated {
@@ -824,7 +984,13 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 
-			ensure!(DiseaseProgressions::<T>::contains_key(progression_id), Error::<T>::DiseaseProgressionNotFound);
+			let progression = DiseaseProgressions::<T>::get(progression_id)
+				.ok_or(Error::<T>::DiseaseProgressionNotFound)?;
+			
+			// Remove from patient's progression list
+			PatientDiseaseProgressions::<T>::mutate(progression.patient_id, |progressions| {
+				progressions.retain(|&id| id != progression_id);
+			});
 
 			DiseaseProgressions::<T>::remove(progression_id);
 
@@ -833,7 +999,6 @@ pub mod pallet {
 			Ok(())
 		}
 
-		// Legacy function - updated to use u32 patient_id
 		#[pallet::weight(10_000)]
 		pub fn create_medical_record(
 			origin: OriginFor<T>,
@@ -867,6 +1032,12 @@ pub mod pallet {
 			};
 
 			MedicalRecords::<T>::insert(record_id, record);
+			
+			// Add to patient's medical records list
+			PatientMedicalRecords::<T>::mutate(patient_id, |records| {
+				records.push(record_id);
+			});
+			
 			NextRecordId::<T>::put(record_id + 1);
 
 			Self::deposit_event(Event::MedicalRecordCreated {
@@ -877,55 +1048,78 @@ pub mod pallet {
 
 			Ok(())
 		}
+
+		// New comprehensive query functions
+		#[pallet::weight(10_000)]
+		pub fn get_patient_complete_history(
+			origin: OriginFor<T>,
+			patient_id: u32,
+		) -> DispatchResult {
+			let _who = ensure_signed(origin)?;
+
+			ensure!(Patients::<T>::contains_key(patient_id), Error::<T>::PatientNotFound);
+
+			let clinical_tests = PatientClinicalTests::<T>::get(patient_id);
+			let progressions = PatientDiseaseProgressions::<T>::get(patient_id);
+			let medical_records = PatientMedicalRecords::<T>::get(patient_id);
+			
+			let total_records = clinical_tests.len() as u32 + 
+							   progressions.len() as u32 + 
+							   medical_records.len() as u32;
+
+			Self::deposit_event(Event::PatientHistoryRetrieved {
+				patient_id,
+				records_count: total_records,
+			});
+
+			Ok(())
+		}
+
+		// #[pallet::weight(10_000)]
+		// pub fn search_patients_by_demographics(
+		// 	origin: OriginFor<T>,
+		// 	gender: Option<Vec<u8>>,
+		// 	birth_year: Option<u32>,
+		// ) -> DispatchResult {
+		// 	let _who = ensure_signed(origin)?;
+
+		// 	let mut result_patients: Vec<u32> = Vec::new();
+		// 	let mut search_criteria = Vec::new();
+
+		// 	if let Some(g) = gender {
+		// 		result_patients = PatientsByGender::<T>::get(&g);
+		// 		search_criteria.extend_from_slice(b"gender:");
+		// 		search_criteria.extend_from_slice(&g);
+		// 	}
+
+		// 	if let Some(year) = birth_year {
+		// 		let year_patients = PatientsByBirthYear::<T>::get(year);
+		// 		if result_patients.is_empty() {
+		// 			result_patients = year_patients;
+		// 		} else {
+		// 			// Intersection of both criteria
+		// 			result_patients.retain(|id| year_patients.contains(id));
+		// 		}
+		// 		if !search_criteria.is_empty() {
+		// 			search_criteria.extend_from_slice(b",");
+		// 		}
+		// 		search_criteria.extend_from_slice(b"birth_year:");
+		// 		let year_str = year.to_string();
+		// 		search_criteria.extend_from_slice(&year_str.as_bytes());
+		// 	}
+
+		// 	Self::deposit_event(Event::PatientsFoundByDemographics {
+		// 		patient_ids: result_patients,
+		// 		search_criteria,
+		// 	});
+
+		// 	Ok(())
+		// }
 	}
 
 	impl<T: Config> Pallet<T> {
-		// Helper function to check if appointment is scheduled
-		pub fn has_next_appointment(progression_id: u32) -> bool {
-			if let Some(progression) = DiseaseProgressions::<T>::get(progression_id) {
-				!progression.next_appointment.is_empty()
-			} else {
-				false
-			}
-		}
-
-		// Helper function to clear next appointment (set to empty)
-		pub fn clear_next_appointment(progression_id: u32) -> DispatchResult {
-			DiseaseProgressions::<T>::try_mutate(progression_id, |progression_opt| -> DispatchResult {
-				let progression = progression_opt.as_mut().ok_or(Error::<T>::DiseaseProgressionNotFound)?;
-				progression.next_appointment = Vec::new(); // Empty = no appointment
-				Ok(())
-			})
-		}
-
-		// Query function to get only progressions WITH scheduled appointments
-		pub fn get_scheduled_appointments(patient_id: u32) -> Vec<DiseaseProgression<T>> {
-			DiseaseProgressions::<T>::iter()
-				.filter_map(|(_, progression)| {
-					if progression.patient_id == patient_id && !progression.next_appointment.is_empty() {
-						Some(progression)
-					} else {
-						None
-					}
-				})
-				.collect()
-		}
-
-		// Query function to get all progressions (with and without appointments)
-		pub fn get_patient_progressions(patient_id: u32) -> Vec<DiseaseProgression<T>> {
-			DiseaseProgressions::<T>::iter()
-				.filter_map(|(_, progression)| {
-					if progression.patient_id == patient_id {
-						Some(progression)
-					} else {
-						None
-					}
-				})
-				.collect()
-		}
-
-		// Function to record changes in audit trail
-		pub fn record_change(
+		// Internal helper function for recording changes
+		fn do_record_change(
 			record_type: RecordType,
 			record_id: u32,
 			field_name: Vec<u8>,
@@ -963,6 +1157,108 @@ pub mod pallet {
 			});
 
 			Ok(())
+		}
+
+		// Query function to get all active patients with pagination
+		pub fn get_all_patients(offset: u32, limit: u32) -> Vec<PatientInfo<T>> {
+			let active_patients = ActivePatients::<T>::get();
+			let start = offset as usize;
+			let end = ((offset + limit) as usize).min(active_patients.len());
+			
+			active_patients[start..end]
+				.iter()
+				.filter_map(|&patient_id| Patients::<T>::get(patient_id))
+				.collect()
+		}
+
+		// Query function to get all clinical tests for a patient
+		pub fn get_patient_clinical_tests(patient_id: u32) -> Vec<ClinicalTest<T>> {
+			PatientClinicalTests::<T>::get(patient_id)
+				.iter()
+				.filter_map(|&test_id| ClinicalTests::<T>::get(test_id))
+				.collect()
+		}
+
+		// Query function to get all disease progressions for a patient
+		pub fn get_patient_disease_progressions(patient_id: u32) -> Vec<DiseaseProgression<T>> {
+			PatientDiseaseProgressions::<T>::get(patient_id)
+				.iter()
+				.filter_map(|&progression_id| DiseaseProgressions::<T>::get(progression_id))
+				.collect()
+		}
+
+		// Query function to get all medical records for a patient
+		pub fn get_patient_medical_records(patient_id: u32) -> Vec<MedicalRecord<T>> {
+			PatientMedicalRecords::<T>::get(patient_id)
+				.iter()
+				.filter_map(|&record_id| MedicalRecords::<T>::get(record_id))
+				.collect()
+		}
+
+		// Query function to get all patients of a doctor
+		pub fn get_doctor_patients(doctor_id: &T::AccountId) -> Vec<PatientInfo<T>> {
+			DoctorPatients::<T>::get(doctor_id)
+				.iter()
+				.filter_map(|&patient_id| Patients::<T>::get(patient_id))
+				.collect()
+		}
+
+		// Query function to get patient's treatment timeline (chronological order)
+		pub fn get_patient_timeline(patient_id: u32) -> Vec<(BlockNumberFor<T>, Vec<u8>)> {
+			let mut timeline = Vec::new();
+
+			// Add clinical tests
+			for test in Self::get_patient_clinical_tests(patient_id) {
+				timeline.push((test.created_at, format!("Clinical Test: {:?}", core::str::from_utf8(&test.test_type).unwrap_or("Unknown")).into_bytes()));
+			}
+
+			// Add disease progressions
+			for progression in Self::get_patient_disease_progressions(patient_id) {
+				timeline.push((progression.created_at, format!("Visit: {:?}", core::str::from_utf8(&progression.diagnosis).unwrap_or("Unknown")).into_bytes()));
+			}
+
+			// Add medical records
+			for record in Self::get_patient_medical_records(patient_id) {
+				timeline.push((record.created_at, format!("Record: {:?}", core::str::from_utf8(&record.diagnosis).unwrap_or("Unknown")).into_bytes()));
+			}
+
+			// Sort by timestamp
+			timeline.sort_by_key(|&(timestamp, _)| timestamp);
+			timeline
+		}
+
+		// Query function for emergency contact lookup
+		pub fn get_emergency_contacts() -> Vec<(u32, Vec<u8>, Vec<u8>)> {
+			ActivePatients::<T>::get()
+				.iter()
+				.filter_map(|&patient_id| {
+					Patients::<T>::get(patient_id).map(|patient| {
+						(patient_id, patient.patient_name, patient.emergency_contact)
+					})
+				})
+				.collect()
+		}
+
+		// Query function for patients with upcoming appointments
+		pub fn get_patients_with_appointments() -> Vec<(u32, Vec<u8>, Vec<u8>)> {
+			ActivePatients::<T>::get()
+				.iter()
+				.filter_map(|&patient_id| {
+					let progressions = Self::get_patient_disease_progressions(patient_id);
+					let upcoming = progressions
+						.iter()
+						.filter(|p| !p.next_appointment.is_empty())
+						.last();
+					
+					if let Some(progression) = upcoming {
+						Patients::<T>::get(patient_id).map(|patient| {
+							(patient_id, patient.patient_name, progression.next_appointment.clone())
+						})
+					} else {
+						None
+					}
+				})
+				.collect()
 		}
 
 		// Function to get all changes for a specific record
